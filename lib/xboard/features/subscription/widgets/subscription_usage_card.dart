@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fl_clash/xboard/features/account/utils/real_name_guard.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'package:flutter/material.dart';
@@ -159,6 +160,8 @@ class SubscriptionUsageCard extends ConsumerWidget {
                   final userState = ref.watch(xboardUserProvider);
                   return IconButton(
                     onPressed: userState.isLoading ? null : () async {
+                      final allowed = await RealNameGuard.ensureVerified(context, ref);
+                      if (!allowed) return;
                       await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
                     },
                     icon: userState.isLoading
@@ -329,6 +332,8 @@ class SubscriptionUsageCard extends ConsumerWidget {
                   final userState = ref.watch(xboardUserProvider);
                   return IconButton(
                     onPressed: userState.isLoading ? null : () async {
+                      final allowed = await RealNameGuard.ensureVerified(context, ref);
+                      if (!allowed) return;
                       await ref.read(xboardUserProvider.notifier).refreshSubscriptionInfo();
                     },
                     icon: userState.isLoading

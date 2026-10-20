@@ -39,6 +39,7 @@ export 'features/subscription/subscription.dart';
 export 'features/payment/payment.dart';
 export 'features/invite/invite.dart';
 export 'features/profile/profile.dart';
+export 'features/account/account.dart';
 
 // ========== 系统功能模块 ==========
 export 'features/domain_status/domain_status.dart';
