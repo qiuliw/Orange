@@ -5,6 +5,8 @@ import 'package:fl_clash/xboard/features/payment/pages/plan_purchase_page.dart';
 import 'package:fl_clash/xboard/features/payment/pages/payment_gateway_page.dart';
 import 'package:fl_clash/xboard/features/online_support/pages/online_support_page.dart';
 import 'package:fl_clash/xboard/features/invite/pages/invite_page.dart';
+import 'package:fl_clash/xboard/features/account/pages/account_center_page.dart';
+import 'package:fl_clash/xboard/features/account/pages/real_name_verify_page.dart';
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
@@ -110,6 +112,24 @@ final List<RouteBase> routes = [
       name: 'subscription',
       pageBuilder: (context, state) => const MaterialPage(
         child: SubscriptionPage(),
+      ),
+    ),
+
+    // 个人中心
+    GoRoute(
+      path: '/account',
+      name: 'account',
+      pageBuilder: (context, state) => const MaterialPage(
+        child: AccountCenterPage(),
+      ),
+    ),
+
+    // 实名认证
+    GoRoute(
+      path: '/account/real-name',
+      name: 'real_name',
+      pageBuilder: (context, state) => const MaterialPage(
+        child: RealNameVerifyPage(),
       ),
     ),
     

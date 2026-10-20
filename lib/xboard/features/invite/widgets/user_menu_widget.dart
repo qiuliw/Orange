@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/features/invite/dialogs/theme_dialog.dart';
 import 'package:fl_clash/xboard/features/invite/dialogs/logout_dialog.dart';
+import 'package:go_router/go_router.dart';
 
 class UserMenuWidget extends ConsumerWidget {
   const UserMenuWidget({super.key});
@@ -13,13 +14,25 @@ class UserMenuWidget extends ConsumerWidget {
       icon: const Icon(Icons.person),
       tooltip: appLocalizations.userCenter,
       onSelected: (value) {
-        if (value == 'theme') {
+        if (value == 'account') {
+          context.push('/account');
+        } else if (value == 'theme') {
           _showThemeDialog(context);
         } else if (value == 'logout') {
           _showLogoutDialog(context);
         }
       },
       itemBuilder: (BuildContext context) => [
+        PopupMenuItem<String>(
+          value: 'account',
+          child: Row(
+            children: [
+              const Icon(Icons.manage_accounts_outlined),
+              const SizedBox(width: 8),
+              Text(appLocalizations.userCenter),
+            ],
+          ),
+        ),
         PopupMenuItem<String>(
           value: 'theme',
           child: Row(

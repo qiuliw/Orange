@@ -9,6 +9,7 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart' show XBoardSDK, CouponModel;
 import 'package:fl_clash/xboard/core/core.dart';
+import 'package:fl_clash/xboard/features/account/utils/real_name_guard.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/payment/providers/xboard_payment_provider.dart';
 import '../widgets/payment_waiting_overlay.dart';
@@ -292,6 +293,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       XBoardNotification.showError(AppLocalizations.of(context).xboardPleaseSelectPaymentPeriod);
       return;
     }
+
+    final allowed = await RealNameGuard.ensureVerified(context, ref);
+    if (!allowed || !mounted) return;
 
     try {
       String? tradeNo;

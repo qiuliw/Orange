@@ -1,6 +1,7 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
+import 'package:fl_clash/xboard/features/account/utils/real_name_guard.dart';
 import 'package:fl_clash/xboard/features/auth/providers/xboard_user_provider.dart';
 import 'package:fl_clash/xboard/features/subscription/providers/xboard_subscription_provider.dart';
 import 'plan_purchase_page.dart';
@@ -190,7 +191,10 @@ class _PlansViewState extends ConsumerState<PlansView> {
       ),
     );
   }
-  void _navigateToPurchase(DomainPlan plan) {
+  Future<void> _navigateToPurchase(DomainPlan plan) async {
+    final allowed = await RealNameGuard.ensureVerified(context, ref);
+    if (!allowed || !mounted) return;
+
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth > 768;
     
