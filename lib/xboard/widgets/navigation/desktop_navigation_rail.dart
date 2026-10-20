@@ -1,5 +1,6 @@
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/xboard/features/online_support/providers/chat_provider.dart';
+import 'package:fl_clash/xboard/features/online_support/services/service_config.dart';
 import 'package:fl_clash/xboard/features/shared/shared.dart';
 import 'package:fl_clash/xboard/features/invite/widgets/user_menu_widget.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,9 @@ class DesktopNavigationRail extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatState = ref.watch(chatProvider);
+    final chatState = CustomerSupportServiceConfig.isConfigServiceAvailable
+        ? ref.watch(chatProvider)
+        : const ChatState();
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
 

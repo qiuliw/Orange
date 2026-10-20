@@ -4,6 +4,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/xboard/features/online_support/models/message_model.dart';
 import 'package:fl_clash/xboard/features/online_support/providers/chat_provider.dart';
 import 'package:fl_clash/xboard/features/online_support/services/websocket_service.dart';
+import 'package:fl_clash/xboard/features/online_support/services/service_config.dart';
 import 'package:fl_clash/xboard/features/online_support/widgets/chat_message_widget.dart';
 import 'package:fl_clash/xboard/features/online_support/widgets/image_picker_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,6 +61,13 @@ class _OnlineSupportPageState extends ConsumerState<OnlineSupportPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!CustomerSupportServiceConfig.isConfigServiceAvailable) {
+      return Scaffold(
+        appBar: AppBar(title: Text(appLocalizations.onlineSupport)),
+        body: const Center(child: Text('客服功能暂未开放')),
+      );
+    }
+
     final chatState = ref.watch(chatProvider);
     final chatNotifier = ref.watch(chatProvider.notifier);
 
