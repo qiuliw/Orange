@@ -18,26 +18,9 @@ jobs:
       max-parallel: 1
       matrix:
         include:
-          - platform: windows
-            os: self-hosted
-            arch: amd64
-          # - platform: windows
-          #   os: windows-11-arm
-          #   arch: arm64
-          - platform: macos
-            os: macos-13
-            arch: amd64
-          - platform: macos
-            os: macos-latest
-            arch: arm64
+          # Client APK release only (no self-hosted / macOS runners on this fork)
           - platform: android
             os: ubuntu-latest
-          - platform: linux
-            os: ubuntu-22.04
-            arch: amd64
-          # - platform: linux
-          #   os: ubuntu-24.04-arm
-          #   arch: arm64
 
     steps:
       - name: Setup rust
@@ -56,10 +39,14 @@ jobs:
       - name: Setup Android Signing
         if: startsWith(matrix.platform,'android')
         run: |
-          echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/local.properties
-          echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/local.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/local.properties
+          if [ -n "${{ secrets.KEYSTORE }}" ]; then
+            echo "${{ secrets.KEYSTORE }}" | base64 --decode > android/app/keystore.jks
+            echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/local.properties
+            echo "storePassword=${{ secrets.STORE_PASSWORD }}" >> android/local.properties
+            echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/local.properties
+          else
+            echo "No KEYSTORE secret; release will use debug signing (see android/app/build.gradle.kts)"
+          fi
 
       # Windows-specific setup improvements
       - name: Setup Windows Build Environment
@@ -255,6 +242,7 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     needs: [ build ]
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -319,14 +307,6 @@ jobs:
     permissions: write-all
     needs: [ build ]
     runs-on: ubuntu-latest
-    services:
-      telegram-bot-api:
-        image: aiogram/telegram-bot-api:latest
-        env:
-          TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
-          TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
-        ports:
-          - 8081:8081
     steps:
       - name: Checkout
         uses: actions/checkout@v4
