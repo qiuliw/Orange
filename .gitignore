@@ -1,3 +1,10 @@
+# Devenv / direnv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+.direnv/
+local.properties
+
 # Miscellaneous
 *.class
 *.log
