@@ -372,8 +372,9 @@ class _PlanPurchasePageState extends ConsumerState<PlanPurchasePage> {
       await _submitPayment(tradeNo, selectedMethod);
     } catch (e) {
       _logger.error('购买流程出错: $e');
-        if (mounted) {
+      if (mounted) {
         PaymentWaitingManager.hide();
+        await RealNameGuard.handleBackendDenied(context, ref, e);
         XBoardNotification.showError('操作失败: ${e.toString()}');
       }
     }

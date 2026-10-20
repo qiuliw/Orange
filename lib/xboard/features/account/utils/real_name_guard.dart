@@ -3,19 +3,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// 实名拦截：需要实名且未通过时弹窗引导去实名页
+/// 实名拦截：与后端 status.required / assertVerified 对齐。
 class RealNameGuard {
-  static Future<bool> ensureVerified(BuildContext context, WidgetRef ref) async {
+  static Future<bool> ensureVerified(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final notifier = ref.read(realNameProvider.notifier);
     await notifier.refresh();
     final status = ref.read(realNameProvider);
 
-    if (!status.required || status.verified) {
+    if (status.verified || !status.required) {
       return true;
     }
-
     if (!context.mounted) return false;
+    return _promptAndNavigate(context, ref);
+  }
 
+  static Future<void> handleBackendDenied(
+    BuildContext context,
+    WidgetRef ref,
+    Object error,
+  ) async {
+    final msg = error.toString();
+    final denied = msg.contains('实名') ||
+        msg.contains('40301') ||
+        msg.contains('real_name') ||
+        msg.contains('real name verification required');
+    if (!denied || !context.mounted) return;
+    await _promptAndNavigate(context, ref);
+  }
+
+  static Future<bool> _promptAndNavigate(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final goVerify = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -39,13 +61,10 @@ class RealNameGuard {
 
     if (goVerify == true && context.mounted) {
       final result = await context.push<bool>('/account/real-name');
-      if (result == true) {
-        return true;
-      }
-      await notifier.refresh();
+      if (result == true) return true;
+      await ref.read(realNameProvider.notifier).refresh();
       return ref.read(realNameProvider).verified;
     }
-
     return false;
   }
 }
