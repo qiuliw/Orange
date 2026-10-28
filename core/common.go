@@ -238,12 +238,12 @@ func updateConfig(params *UpdateParams) {
 func setupConfig(params *SetupParams) error {
 	runLock.Lock()
 	defer runLock.Unlock()
-	var err error
-	constant.DefaultTestURL = params.TestURL
-	currentConfig, err = config.ParseRawConfig(params.Config)
+	candidate, err := config.ParseRawConfig(params.Config)
 	if err != nil {
-		currentConfig, _ = config.ParseRawConfig(config.DefaultRawConfig())
+		return err
 	}
+	constant.DefaultTestURL = params.TestURL
+	currentConfig = candidate
 	hub.ApplyConfig(currentConfig)
 	patchSelectGroup(params.SelectedMap)
 	updateListeners()
