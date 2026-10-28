@@ -9,6 +9,8 @@
     pkgs.libayatana-appindicator
   ];
 
+  scripts.linux-run.exec = "nixGL flutter run -d linux";
+
   android = {
     enable = true;
     flutter.enable = true;
