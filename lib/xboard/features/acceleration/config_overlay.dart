@@ -9,6 +9,24 @@ class AccelerationConfigOverlay {
   Future<void> _tail = Future.value();
   bool get active => value != null && value!.isNotEmpty;
 
+  int _generation = 0;
+  void invalidatePendingOperations() {
+    _generation++;
+  }
+
+  Future<void> guardedApply({
+    required Future<void> Function(bool Function()) authorize,
+    required Future<void> Function(bool Function()) mutate,
+  }) async {
+    final generation = _generation;
+    bool isCurrent() => generation == _generation;
+    await authorize(isCurrent);
+    if (!isCurrent()) return;
+    await serialize(() async {
+      if (isCurrent()) await mutate(isCurrent);
+    });
+  }
+
   Future<void> serialize(Future<void> Function() operation) {
     final next = _tail.then((_) => operation());
     _tail = next.then<void>((_) {}, onError: (Object _, StackTrace __) {});

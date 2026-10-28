@@ -42,11 +42,12 @@ class _AccelerationPageState extends State<AccelerationPage> {
         _loading = false;
       });
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
           _loadError = '暂时无法加载应用，请稍后重试';
         });
+      }
     }
   }
 
@@ -63,7 +64,9 @@ class _AccelerationPageState extends State<AccelerationPage> {
   Future<void> _probe() async {
     if (_probing ||
         coordinator.phase != 'connected' ||
-        coordinator.entrances.isEmpty) return;
+        coordinator.entrances.isEmpty) {
+      return;
+    }
     final entrance = coordinator.entrances.first;
     if (entrance['probe'] != 'tcp') return;
     final epoch = _probeEpoch;
@@ -71,8 +74,9 @@ class _AccelerationPageState extends State<AccelerationPage> {
     final result = await (widget.probe ?? EntranceProbe())
         .measure(entrance['host'] as String, entrance['port'] as int);
     _probing = false;
-    if (mounted && epoch == _probeEpoch && coordinator.phase == 'connected')
+    if (mounted && epoch == _probeEpoch && coordinator.phase == 'connected') {
       setState(() => _latency = result);
+    }
   }
 
   String get _status {

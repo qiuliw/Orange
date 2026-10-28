@@ -1,18 +1,49 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fl_clash/xboard/features/acceleration/config_overlay.dart';
 import 'package:fl_clash/xboard/features/acceleration/rule_builder.dart';
 import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 
 void main() {
+  test('authorization completion after stop cannot mutate the core overlay',
+      () async {
+    final store = AccelerationConfigOverlay();
+    final authorization = Completer<void>();
+    final oldStart = store.guardedApply(
+      authorize: (_) async {
+        await authorization.future;
+      },
+      mutate: (_) async {
+        store.value = {
+          'rules': ['MATCH,REJECT']
+        };
+      },
+    );
+    store.invalidatePendingOperations();
+    await store.guardedApply(
+        authorize: (_) async {},
+        mutate: (_) async {
+          store.value = null;
+        });
+    authorization.complete();
+    await oldStart;
+    expect(store.active, isFalse);
+  });
   test('export the compiled configuration for the pinned Go core parser', () {
-    final fixture=jsonDecode(File('test/fixtures/acceleration-v1.json').readAsStringSync()) as Map<String,dynamic>;
-    final store=AccelerationConfigOverlay();
-    store.value=AccelerationRuleBuilder().build(AccelerationCatalog.fromJson(fixture['catalog']), {'demo'}, AccelerationConfig.fromJson(fixture['config']));
-    final result=store.merge({});
-    File('.dart_tool/acceleration-core-config.json').writeAsStringSync(jsonEncode(result));
-    expect(result['rule'].last,'MATCH,DIRECT');
+    final fixture = jsonDecode(
+            File('test/fixtures/acceleration-v1.json').readAsStringSync())
+        as Map<String, dynamic>;
+    final store = AccelerationConfigOverlay();
+    store.value = AccelerationRuleBuilder().build(
+        AccelerationCatalog.fromJson(fixture['catalog']),
+        {'demo'},
+        AccelerationConfig.fromJson(fixture['config']));
+    final result = store.merge({});
+    File('.dart_tool/acceleration-core-config.json')
+        .writeAsStringSync(jsonEncode(result));
+    expect(result['rule'].last, 'MATCH,DIRECT');
   });
   test('overlay wins over legacy mode and uses the cores JSON rule key', () {
     final store = AccelerationConfigOverlay();

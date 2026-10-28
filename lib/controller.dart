@@ -281,10 +281,11 @@ class AppController {
     if (message.isNotEmpty) throw message;
   }
 
-  Future<Result<bool>> _requestAdmin(bool enableTun) async {
+  Future<Result<bool>> _requestAdmin(bool enableTun, {bool Function()? isCurrent}) async {
     final realTunEnable = _ref.read(realTunEnableProvider);
     if (enableTun != realTunEnable && realTunEnable == false) {
       final code = await system.authorizeCore();
+      if (isCurrent != null && !isCurrent()) return Result.error('Operation cancelled');
       switch (code) {
         case AuthorizeCode.success:
           await restartCore();
@@ -296,6 +297,7 @@ class AppController {
           break;
       }
     }
+    if (isCurrent != null && !isCurrent()) return Result.error('Operation cancelled');
     _ref.read(realTunEnableProvider.notifier).value = enableTun;
     return Result.success(enableTun);
   }
@@ -320,28 +322,32 @@ class AppController {
   Future<void> applyAccelerationOverlay(Map<String,dynamic> overlay) async {
     // Authorization may restart the core and re-enter applyProfile. Never hold
     // the configuration queue while waiting for that restart.
-    final wantsTun = overlay.isNotEmpty || _ref.read(patchClashConfigProvider).tun.enable;
-    final authorized = await _requestAdmin(wantsTun);
-    if (authorized.isError) {
-      final retry = await _requestAdmin(wantsTun);
-      if (retry.isError) throw StateError('TUN authorization failed');
-    }
-    if (overlay.isNotEmpty && !_ref.read(realTunEnableProvider)) throw StateError('TUN authorization denied');
-    await accelerationConfigOverlay.serialize(() async {
+    await accelerationConfigOverlay.guardedApply(authorize: (isCurrent) async {
+      final wantsTun = overlay.isNotEmpty || _ref.read(patchClashConfigProvider).tun.enable;
+      final authorized = await _requestAdmin(wantsTun, isCurrent: isCurrent);
+      if (!isCurrent()) return;
+      if (authorized.isError) {
+        final retry = await _requestAdmin(wantsTun, isCurrent: isCurrent);
+        if (!isCurrent()) return;
+        if (retry.isError) throw StateError('TUN authorization failed');
+      }
+      if (overlay.isNotEmpty && !_ref.read(realTunEnableProvider)) throw StateError('TUN authorization denied');
+    }, mutate: (isCurrent) async {
       final previous = accelerationConfigOverlay.value;
       accelerationConfigOverlay.value = overlay.isEmpty ? null : overlay;
       try {
-        await _setupClashConfigUnlocked();
-        if (overlay.isNotEmpty) await updateStatus(true);
+        await _setupClashConfigUnlocked(isCurrent: isCurrent);
+        if (isCurrent() && overlay.isNotEmpty) await updateStatus(true);
       } catch (_) {
-        accelerationConfigOverlay.value = previous;
+        if (isCurrent()) accelerationConfigOverlay.value = previous;
         rethrow;
       }
     });
   }
 
-  Future<void> _setupClashConfigUnlocked() async {
+  Future<void> _setupClashConfigUnlocked({bool Function()? isCurrent}) async {
     await _ref.read(currentProfileProvider)?.checkAndUpdate();
+    if (isCurrent != null && !isCurrent()) return;
     final patchConfig = _ref.read(patchClashConfigProvider);
     if (accelerationConfigOverlay.active && !_ref.read(realTunEnableProvider)) throw StateError('TUN authorization denied');
     final realTunEnable = _ref.read(realTunEnableProvider);
@@ -349,10 +355,12 @@ class AppController {
     final params = await globalState.getSetupParams(
       pathConfig: realPatchConfig,
     );
+    if (isCurrent != null && !isCurrent()) return;
     if (accelerationConfigOverlay.active) {
       final yamlConfig = Map<String, dynamic>.from(params.config);
       yamlConfig['rules'] = yamlConfig.remove('rule');
       final validation = await clashCore.validateConfig(jsonEncode(yamlConfig));
+      if (isCurrent != null && !isCurrent()) return;
       if (validation.isNotEmpty) throw StateError('Acceleration configuration validation failed');
     }
     final message = await clashCore.setupConfig(params);

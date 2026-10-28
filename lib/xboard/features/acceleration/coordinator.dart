@@ -38,6 +38,7 @@ class AccelerationCoordinator extends ChangeNotifier {
   }
 
   Future<void> start(Set<String> applicationIds) async {
+    core.invalidatePendingOperations();
     final epoch = ++_epoch;
     _expiry?.cancel();
     _refreshTimer?.cancel();
@@ -46,8 +47,9 @@ class AccelerationCoordinator extends ChangeNotifier {
     final selected = Set<String>.unmodifiable(applicationIds);
     _changed();
     try {
-      if (selected.isEmpty)
+      if (selected.isEmpty) {
         throw const AccelerationApiException('EMPTY_SELECTION');
+      }
       final freshCatalog = await api.catalog();
       if (!_current(epoch)) return;
       catalog = freshCatalog;
@@ -84,18 +86,21 @@ class AccelerationCoordinator extends ChangeNotifier {
         final next = await api.state();
         if (!_current(epoch)) return;
         final raw = next['release'];
-        if (raw is! Map || raw['release_id'] != release.id)
+        if (raw is! Map || raw['release_id'] != release.id) {
           throw const AccelerationApiException('RELEASE_CONFLICT');
+        }
         release = AccelerationRelease.fromJson(Map<String, dynamic>.from(raw));
       }
-      if (release.status != 'ready')
+      if (release.status != 'ready') {
         throw AccelerationApiException(release.status == 'pending'
             ? 'PREPARATION_PENDING'
             : 'PREPARATION_FAILED');
+      }
       final config = await api.config();
       if (!_current(epoch)) return;
-      if (config.version != release.version)
+      if (config.version != release.version) {
         throw const AccelerationApiException('VERSION_CONFLICT');
+      }
       _validate(config);
       await core.apply(_builder.build(freshCatalog, selected, config));
       if (!_current(epoch)) return;
@@ -129,11 +134,13 @@ class AccelerationCoordinator extends ChangeNotifier {
   }
 
   void _validate(AccelerationConfig config) {
-    if (!now().isBefore(config.validUntil))
+    if (!now().isBefore(config.validUntil)) {
       throw const AccelerationApiException('CONFIG_EXPIRED');
+    }
     if (!_selected
-        .every((id) => config.applications.any((app) => app['id'] == id)))
+        .every((id) => config.applications.any((app) => app['id'] == id))) {
       throw const AccelerationApiException('INCOMPLETE_CONFIGURATION');
+    }
   }
 
   void _schedule() {
@@ -160,8 +167,9 @@ class AccelerationCoordinator extends ChangeNotifier {
       final config = await api.config();
       if (!_current(epoch)) return;
       _validate(config);
-      if (config.rulesVersion != catalog!.rulesVersion)
+      if (config.rulesVersion != catalog!.rulesVersion) {
         throw const AccelerationApiException('RULES_CHANGED');
+      }
       await core.apply(_builder.build(catalog!, _selected, config));
       if (!_current(epoch)) return;
       _config = config;
@@ -172,14 +180,16 @@ class AccelerationCoordinator extends ChangeNotifier {
       final temporary = error is AccelerationApiException &&
           (error.errorCode == 'NETWORK_ERROR' ||
               (error.httpStatus ?? 0) >= 500);
-      if (!temporary || _config == null || !now().isBefore(_config!.validUntil))
+      if (!temporary || _config == null || !now().isBefore(_config!.validUntil)) {
         await _block('CONFIG_UNAVAILABLE');
+      }
     } finally {
       _refreshing = false;
     }
   }
 
   Future<void> _block(String reason) async {
+    core.invalidatePendingOperations();
     final epoch = ++_epoch;
     _expiry?.cancel();
     _refreshTimer?.cancel();
@@ -203,6 +213,7 @@ class AccelerationCoordinator extends ChangeNotifier {
   }
 
   Future<void> stop() async {
+    core.invalidatePendingOperations();
     final epoch = ++_epoch;
     _expiry?.cancel();
     _refreshTimer?.cancel();
@@ -228,6 +239,7 @@ class AccelerationCoordinator extends ChangeNotifier {
 
   @override
   void dispose() {
+    core.invalidatePendingOperations();
     _disposed = true;
     _epoch++;
     _expiry?.cancel();

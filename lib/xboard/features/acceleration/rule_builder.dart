@@ -12,11 +12,13 @@ class AccelerationRuleBuilder {
 
   Map<String, dynamic> build(AccelerationCatalog catalog, Set<String> selected,
       AccelerationConfig? config) {
-    if (config != null && config.rulesVersion != catalog.rulesVersion)
+    if (config != null && config.rulesVersion != catalog.rulesVersion) {
       throw const FormatException('Rules version mismatch');
+    }
     if (!selected
-        .every((id) => catalog.applications.any((app) => app.id == id)))
+        .every((id) => catalog.applications.any((app) => app.id == id))) {
       throw const FormatException('Unknown application');
+    }
     final apps =
         catalog.applications.where((a) => selected.contains(a.id)).toList()
           ..sort((a, b) {
@@ -35,8 +37,9 @@ class AccelerationRuleBuilder {
           : <String>[];
       final target = names.isEmpty ? 'REJECT' : 'accel-app-${app.id}';
       targets[app.id] = target;
-      if (names.isNotEmpty)
+      if (names.isNotEmpty) {
         groups.add({'name': target, 'type': 'select', 'proxies': names});
+      }
     }
     // All domain rules precede every broad process rule, including other apps.
     for (final app in apps) {
@@ -46,8 +49,9 @@ class AccelerationRuleBuilder {
     }
     for (final app in apps) {
       for (final process in app.processNames) {
-        if (!_browsers.contains(process.toLowerCase()))
+        if (!_browsers.contains(process.toLowerCase())) {
           rules.add('PROCESS-NAME,$process,${targets[app.id]}');
+        }
       }
     }
     return {

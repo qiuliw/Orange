@@ -44,3 +44,15 @@ func TestInvalidConfigPreservesPreviousProtection(t *testing.T) {
 		t.Fatal("failed configuration replaced the previous protected configuration")
 	}
 }
+
+func TestMalformedSetupRequestPreservesPreviousProtection(t *testing.T) {
+	constant.SetHomeDir(t.TempDir())
+	before := &config.Config{}
+	currentConfig = before
+	if result := handleSetupConfig([]byte(`{"config":{"tun":{"enable":"invalid"}}}`)); result == "" {
+		t.Fatal("malformed request should fail")
+	}
+	if currentConfig != before {
+		t.Fatal("malformed request replaced the previous protected configuration")
+	}
+}

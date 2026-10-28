@@ -11,6 +11,9 @@ import '../core_config_port.dart';
 
 class _CorePort implements CoreConfigPort {
   @override
+  void invalidatePendingOperations() =>
+      accelerationConfigOverlay.invalidatePendingOperations();
+  @override
   Future<void> apply(Map<String, dynamic> overlay) =>
       globalState.appController.applyAccelerationOverlay(overlay);
   @override
@@ -43,8 +46,9 @@ final accelerationCoordinatorProvider =
   ref.onDispose(() => WidgetsBinding.instance.removeObserver(observer));
   ref.listen(xboardUserAuthProvider, (previous, next) {
     if (previous?.isAuthenticated == true &&
-        (!next.isAuthenticated || previous?.email != next.email))
+        (!next.isAuthenticated || previous?.email != next.email)) {
       unawaited(coordinator.stop());
+    }
   });
   return coordinator;
 });

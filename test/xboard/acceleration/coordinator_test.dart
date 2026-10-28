@@ -42,6 +42,8 @@ class FakeApi implements AccelerationApi {
 }
 
 class FakeCore implements CoreConfigPort {
+  @override
+  void invalidatePendingOperations() {}
   final List<String> events;
   Map<String, dynamic> last = {};
   bool deny = false;
