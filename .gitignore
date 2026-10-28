@@ -76,3 +76,5 @@ assets/config/xboard.config.yaml
 
 # 忽略证书文件
 assets/cer/
+# Rust helper output (contains the build-specific core checksum).
+/services/helper/target/
