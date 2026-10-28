@@ -29,6 +29,45 @@
 
 ## 环境准备
 
+### 使用跨平台工具管理
+
+参考 [qiuliw/flutter_app](https://github.com/qiuliw/flutter_app)，Windows / macOS / Android 使用仓库根目录的 `mise.toml` 管理 Flutter、Go、Java、android-cli 和 just；Linux 继续使用现有 devenv + nixGL，并保留 Orange 的 Go、GTK 与 Android 构建依赖。
+
+本配置沿用 Orange 已使用的 Flutter 3.32.8、Java 17 和 Go 1.25.11，不随模板升级 Flutter。android-cli 固定 1.1.16717390、just 固定 1.59.0。Linux Flutter 由 `devenv.lock` 中的 nixpkgs 提供，与 mise 不是同一份 SDK；跨系统构建前分别核对 `flutter --version`。
+
+安装 [mise](https://mise.jdx.dev/) 后，在仓库根目录执行：
+
+```sh
+mise trust
+mise install
+mise exec -- flutter doctor
+mise exec -- just --list
+```
+
+Windows 桌面还需要 Visual Studio 的“使用 C++ 的桌面开发”工作负载；macOS 桌面需要 Xcode 与对应命令行工具。mise 不代替操作系统原生构建工具。
+
+Android 模拟器常用入口：
+
+```sh
+mise exec -- just android-info
+mise exec -- just emu-profiles
+mise exec -- just emu-create medium_phone
+mise exec -- just emu-start medium_phone
+mise exec -- flutter run
+```
+
+`mise install` 只安装所列工具，不能据此认定全部 Android SDK/NDK 已就绪。Orange 的 Gradle 要求 Android SDK 35 和 NDK 28.2.13676358；运行 `android info` / `android sdk list` 检查实际 SDK，按 Android CLI 或 SDK Manager 补齐组件及许可证。不要复制模板应用的 Gradle 配置覆盖本项目。
+
+Linux：
+
+```sh
+devenv shell
+linux-run
+# 或 nixGL flutter run -d linux
+```
+
+工具管理就绪后，仍需完成下文的子模块初始化、SDK 代码生成和内核构建；这些步骤不属于 mise 工具安装。
+
 请确保已安装以下工具：
 
 - **Flutter SDK** - [下载安装](https://flutter.dev/docs/get-started/install)

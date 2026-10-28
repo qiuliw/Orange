@@ -1,0 +1,8 @@
+# Windows / macOS / Android tooling. Linux may use the existing devenv shell.
+# Keep Orange's validated Flutter/JDK baseline; this is not a Flutter upgrade.
+[tools]
+flutter = "3.32.8"
+go = "1.25.11"
+java = "17"
+android-cli = "1.1.16717390"
+just = "1.59.0"
