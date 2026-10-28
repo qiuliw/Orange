@@ -180,6 +180,17 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const NoticeBanner(),
+                          if (Platform.isWindows)
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                              child: Card(child: ListTile(
+                                leading: const Icon(Icons.apps),
+                                title: const Text('应用加速'),
+                                subtitle: const Text('选择应用，一键加速'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () => context.push('/acceleration'),
+                              )),
+                            ),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                             child: _buildUsageSection(),
@@ -319,4 +330,4 @@ class _XBoardHomePageState extends ConsumerState<XBoardHomePage>
       }
     });
   }
-} 
+}

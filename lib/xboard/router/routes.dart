@@ -10,6 +10,10 @@ import 'package:fl_clash/xboard/features/account/pages/real_name_verify_page.dar
 import 'package:fl_clash/xboard/features/auth/pages/login_page.dart';
 import 'package:fl_clash/xboard/domain/domain.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../features/acceleration/pages/acceleration_page.dart';
+import '../features/acceleration/providers/acceleration_provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'shell_layout.dart';
@@ -19,6 +23,9 @@ import 'shell_layout.dart';
 
 // 路由列表
 final List<RouteBase> routes = [
+    GoRoute(path:'/acceleration',name:'acceleration',builder:(context,state)=>Platform.isWindows
+      ? Consumer(builder:(context,ref,_)=>AccelerationPage(coordinator:ref.watch(accelerationCoordinatorProvider)))
+      : const Scaffold(body:Center(child:Text('应用加速当前仅支持 Windows')))),
     // StatefulShellRoute - 包含侧边栏的主框架，保持各分支状态
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {

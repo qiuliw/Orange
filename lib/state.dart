@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:fl_clash/xboard/features/acceleration/config_overlay.dart';
 import 'dart:convert';
 import 'dart:ffi' show Pointer;
 
@@ -310,7 +311,7 @@ class GlobalState {
   }) async {
     final profile = config.currentProfile;
     if (profile == null) {
-      return {};
+      return accelerationConfigOverlay.merge({});
     }
     final profileId = profile.id;
     final configMap = await getProfileConfig(profileId);
@@ -434,7 +435,7 @@ class GlobalState {
       }
     }
     rawConfig["rule"] = rules;
-    return rawConfig;
+    return accelerationConfigOverlay.merge(rawConfig);
   }
 
   Future<Map<String, dynamic>> getProfileConfig(String profileId) async {
